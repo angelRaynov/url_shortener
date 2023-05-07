@@ -1,0 +1,14 @@
+version: '3.9'
+
+services:
+  app:
+    image: golang:latest
+    container_name: url_shortener
+    working_dir: /go/src/url_shortener
+    stdin_open: true
+    tty: true
+    volumes:
+    - .:/go/src/url_shortener
+    ports:
+      - "8080:8080"
+
