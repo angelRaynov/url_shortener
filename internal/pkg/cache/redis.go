@@ -54,7 +54,7 @@ func (r *redisCache) Cache(short,long string) error {
 	pipe := r.client.TxPipeline()
 
 	// Execute the pipeline within a transaction
-	_, err := pipe.TxPipelined(r.ctx, func(pipeliner redis.Pipeliner) error {
+	_, err := pipe.TxPipelined(r.ctx, func(pipe redis.Pipeliner) error {
 		pipe.Set(r.ctx, long, short, 24*time.Hour)
 		pipe.Set(r.ctx, short, long, 24*time.Hour)
 		return nil
