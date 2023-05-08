@@ -6,19 +6,24 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"url_shortener/config"
 	"url_shortener/internal/model"
 	"url_shortener/internal/url"
 )
 
 type urlHandler struct {
 	urlUseCase url.ShortExpander
+	cfg        *config.Application
 }
 
-func NewURLHandler(uc url.ShortExpander) url.ShortenExpandHandler {
-	return &urlHandler{urlUseCase: uc}
+func NewURLHandler(cfg *config.Application, uc url.ShortExpander) url.ShortenExpandHandler {
+	return &urlHandler{
+		urlUseCase: uc,
+		cfg:        cfg,
+	}
 }
 
-func (uh *urlHandler) ShortenURL(c *gin.Context)  {
+func (uh *urlHandler) ShortenURL(c *gin.Context) {
 	var urlRequest model.ShortenRequest
 
 	if err := c.BindJSON(&urlRequest); err != nil {
@@ -37,24 +42,23 @@ func (uh *urlHandler) ShortenURL(c *gin.Context)  {
 
 }
 
-func (uh *urlHandler) ExpandURL(c *gin.Context)  {
+func (uh *urlHandler) ExpandURL(c *gin.Context) {
 	shortenedURL := c.Param("shortened")
 
-	if shortenedURL != "" {
-		shortenedURL = strings.TrimSpace(shortenedURL)
-		//redirect
-			long, err := uh.urlUseCase.Expand("http://localhost:1234/"+shortenedURL)
-			if err != nil {
-				err = fmt.Errorf("expanding url:%w", err)
-				log.Printf("%s", err)
-				c.IndentedJSON(http.StatusNotFound,"corresponding long url not found")
-				return
-			}
-
-			c.Redirect(http.StatusMovedPermanently, long)
-			return
+	if shortenedURL == "" {
+		c.JSON(http.StatusBadRequest, "unable to process request")
 	}
-	c.JSON(http.StatusBadRequest,"unable to process request")
 
+	shortenedURL = uh.cfg.AppURL + strings.TrimSpace(shortenedURL)
+	long, err := uh.urlUseCase.Expand(shortenedURL)
 
+	if err != nil {
+		err = fmt.Errorf("expanding url:%w", err)
+		log.Printf("%s", err)
+		c.IndentedJSON(http.StatusNotFound, "corresponding long url not found")
+		return
+	}
+
+	c.Redirect(http.StatusMovedPermanently, long)
+	return
 }
