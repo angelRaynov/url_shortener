@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"log"
 	"url_shortener/config"
+	"url_shortener/internal/pkg/database"
 	"url_shortener/internal/repository"
 	"url_shortener/internal/url/delivery/http"
 	"url_shortener/internal/url/usecase"
@@ -11,7 +12,8 @@ import (
 
 func main() {
 	cfg := config.New()
-	repo := repository.NewURLRepository()
+	db := database.InitDB(cfg)
+	repo := repository.NewURLRepository(db)
 	useCase := usecase.NewURLUseCase(cfg, repo)
 	handler := http.NewURLHandler(cfg, useCase)
 

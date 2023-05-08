@@ -10,6 +10,11 @@ type Application struct {
 	AppMode string `mapstructure:"app_mode"`
 	AppPort string `mapstructure:"app_port"`
 	AppURL  string `mapstructure:"app_url"`
+
+	DBHost string `mapstructure:"db_host"`
+	DBKeyspace string `mapstructure:"db_keyspace"`
+
+	RedisHost string `mapstructure:"redis_host"`
 }
 
 func New() *Application {

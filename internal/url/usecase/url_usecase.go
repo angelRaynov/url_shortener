@@ -22,20 +22,31 @@ func NewURLUseCase( cfg *config.Application, r repository.StoreFinder) url.Short
 		cfg:  cfg,
 	}
 }
-func (uc *urlUseCase) Shorten(long string) string {
+func (uc *urlUseCase) Shorten(long string) (string,error) {
+	//check redis
+
+	//check db
 	short, err := uc.repo.FindShort(long)
 	if err == nil {
 		log.Printf("found cached short url %s", short)
-		return short
+		return short, nil
 	}
 	log.Printf("finding cached short url:%v", err)
 
-	short = uc.cfg.AppURL + uc.generateShortURL()
+	id,err := uc.generateShortURL()
+	if err != nil {
+		log.Printf("checking for uniqueness:%v", err)
+	}
 
-	uc.repo.Store(short, long)
+	short = uc.cfg.AppURL + id
+
+	err = uc.repo.Store(short, long)
+	if err != nil {
+		return "", fmt.Errorf("storing url:%w",err)
+	}
 	log.Printf("url shortened %s\n", short)
 
-	return short
+	return short,nil
 }
 
 func (uc *urlUseCase) Expand(short string) (string, error) {
@@ -48,7 +59,7 @@ func (uc *urlUseCase) Expand(short string) (string, error) {
 
 }
 
-func (uc *urlUseCase) generateShortURL() string {
+func (uc *urlUseCase) generateShortURL() (string,error) {
 	lengthConstraint := 5
 	idBytes := make([]byte, lengthConstraint)
 
@@ -58,8 +69,13 @@ func (uc *urlUseCase) generateShortURL() string {
 		}
 		short := string(idBytes)
 
-		if uc.repo.IsShortURLUnique(short) {
-			return short
+		isUnique, err := uc.repo.IsShortURLUnique(short)
+		if err != nil {
+			return "",fmt.Errorf("generating short url:%w",err)
+		}
+
+		if isUnique {
+			return short, nil
 		}
 		log.Printf("short url %s is not unique, generating new one\n", short)
 	}

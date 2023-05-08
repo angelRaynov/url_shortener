@@ -11,4 +11,24 @@ services:
     - .:/go/src/url_shortener
     ports:
       - "8080:8080"
+    depends_on:
+      - cassandra
+      - redis
+  cassandra:
+    image: cassandra:latest
+    container_name: cass
+    restart: always
+    environment:
+      - CASSANDRA_CLUSTER_NAME=url-shortener-cluster
+    volumes:
+      - .docker/cassandra/data:/var/lib/cassandra
+      - .docker/cassandra/init.cql:/docker-entrypoint-initdb.d/setup.cql
+    ports:
+      - "9042:9042"
 
+  redis:
+    container_name: redis
+    image: redis:latest
+    restart: always
+volumes:
+  cassandra-data:
