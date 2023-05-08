@@ -4,20 +4,14 @@ import (
 	"github.com/gocql/gocql"
 	"time"
 	"url_shortener/internal/pkg/database"
+	"url_shortener/internal/url"
 )
 
 type URLRepo struct {
 	db *database.DB
 }
 
-type StoreFinder interface {
-	Store(short, long string) error
-	FindShort(long string) (string,error)
-	FindLong(short string) (string,error)
-	IsShortURLUnique(short string) (bool, error)
-}
-
-func NewURLRepository(db *database.DB) StoreFinder {
+func NewURLRepository(db *database.DB) url.StoreFinder {
 	return &URLRepo{
 		db: db,
 	}

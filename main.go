@@ -6,8 +6,8 @@ import (
 	"url_shortener/config"
 	"url_shortener/internal/pkg/cache"
 	"url_shortener/internal/pkg/database"
-	"url_shortener/internal/repository"
 	"url_shortener/internal/url/delivery/http"
+	"url_shortener/internal/url/repository"
 	"url_shortener/internal/url/usecase"
 )
 

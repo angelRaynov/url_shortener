@@ -6,19 +6,18 @@ import (
 	"math/rand"
 	"url_shortener/config"
 	"url_shortener/internal/pkg/cache"
-	"url_shortener/internal/repository"
 	"url_shortener/internal/url"
 )
 
 const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 
 type urlUseCase struct {
-	cfg  *config.Application
-	repo repository.StoreFinder
+	cfg   *config.Application
+	repo  url.StoreFinder
 	cache cache.GetCacher
 }
 
-func NewURLUseCase( cfg *config.Application, r repository.StoreFinder, cache cache.GetCacher) url.ShortExpander {
+func NewURLUseCase( cfg *config.Application, r url.StoreFinder, cache cache.GetCacher) url.ShortExpander {
 	return &urlUseCase{
 		repo: r,
 		cfg:  cfg,
