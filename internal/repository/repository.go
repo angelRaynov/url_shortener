@@ -17,7 +17,7 @@ type StoreFinder interface {
 	IsShortURLUnique(short string) (bool, error)
 }
 
-func NewURLRepository(db *database.DB) *URLRepo {
+func NewURLRepository(db *database.DB) StoreFinder {
 	return &URLRepo{
 		db: db,
 	}

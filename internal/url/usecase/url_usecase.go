@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"url_shortener/config"
+	"url_shortener/internal/pkg/cache"
 	"url_shortener/internal/repository"
 	"url_shortener/internal/url"
 )
@@ -14,24 +15,30 @@ const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 type urlUseCase struct {
 	cfg  *config.Application
 	repo repository.StoreFinder
+	cache cache.GetCacher
 }
 
-func NewURLUseCase( cfg *config.Application, r repository.StoreFinder) url.ShortExpander {
+func NewURLUseCase( cfg *config.Application, r repository.StoreFinder, cache cache.GetCacher) url.ShortExpander {
 	return &urlUseCase{
 		repo: r,
 		cfg:  cfg,
+		cache: cache,
 	}
 }
 func (uc *urlUseCase) Shorten(long string) (string,error) {
 	//check redis
+	short, err := uc.cache.GetShort(long)
+	if err == nil {
+		log.Printf("found short url in cache %s", short)
+		return short,nil
+	}
 
 	//check db
-	short, err := uc.repo.FindShort(long)
+	short, err = uc.repo.FindShort(long)
 	if err == nil {
-		log.Printf("found cached short url %s", short)
+		log.Printf("found short url in db %s", short)
 		return short, nil
 	}
-	log.Printf("finding cached short url:%v", err)
 
 	id,err := uc.generateShortURL()
 	if err != nil {
@@ -44,13 +51,25 @@ func (uc *urlUseCase) Shorten(long string) (string,error) {
 	if err != nil {
 		return "", fmt.Errorf("storing url:%w",err)
 	}
+	err = uc.cache.Cache(short, long)
+	if err != nil {
+		return "", fmt.Errorf("caching url:%w",err)
+	}
 	log.Printf("url shortened %s\n", short)
 
 	return short,nil
 }
 
 func (uc *urlUseCase) Expand(short string) (string, error) {
-	long, err := uc.repo.FindLong(short)
+	//check redis
+	long, err := uc.cache.GetLong(short)
+	if err == nil {
+		log.Printf("found short url in cache %s", short)
+		return long,nil
+	}
+
+	//check db
+	long, err = uc.repo.FindLong(short)
 	if err != nil {
 		return "", fmt.Errorf("finding cached long url:%w", err)
 	}
