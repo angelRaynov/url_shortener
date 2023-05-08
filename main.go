@@ -1,10 +1,10 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
-	"net/http"
 	"url_shortener/internal/repository"
-	transport "url_shortener/internal/url/delivery/http"
+	"url_shortener/internal/url/delivery/http"
 	"url_shortener/internal/url/usecase"
 )
 
@@ -12,14 +12,15 @@ import (
 func main() {
 	repo := repository.NewURLRepository()
 	useCase := usecase.NewURLUseCase(repo)
-	handler := transport.NewURLHandler(useCase)
+	handler := http.NewURLHandler(useCase)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		handler.Handle(w, r)
-	})
+	router := gin.Default()
+	router.POST("/", handler.ShortenURL)
+	router.GET("/:shortened", handler.ExpandURL)
+
 	log.Println("listening on port :1234")
 
-	log.Fatal(http.ListenAndServe(":1234", nil))
+	log.Fatal(router.Run("localhost:1234"))
 
 }
 

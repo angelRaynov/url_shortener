@@ -5,15 +5,16 @@ import (
 	"log"
 	"math/rand"
 	"url_shortener/internal/repository"
+	"url_shortener/internal/url"
 )
 
-const 	chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 
 type urlUseCase struct {
 	repo repository.StoreFinder
 }
 
-func NewURLUseCase(r repository.StoreFinder) *urlUseCase {
+func NewURLUseCase(r repository.StoreFinder) url.ShortExpander {
 	return &urlUseCase{
 		repo: r,
 	}
@@ -27,7 +28,7 @@ func (uc *urlUseCase) Shorten(long string) string {
 	log.Printf("finding cached short url:%v",err)
 
 	short = uc.generateShortURL()
-
+	short = "http://localhost:1234/"+short
 	uc.repo.Store(short, long)
 	log.Printf("url shortened %s\n", short)
 

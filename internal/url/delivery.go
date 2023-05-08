@@ -1,7 +1,10 @@
 package url
 
-import "net/http"
+import (
+	"github.com/gin-gonic/gin"
+)
 
-type Handler interface {
-	Handle(w http.ResponseWriter, r *http.Request)
+type ShortenExpandHandler interface {
+	ShortenURL(c *gin.Context)
+	ExpandURL(c *gin.Context)
 }

@@ -1,8 +1,11 @@
 package model
 
 
-type URL struct {
-	Long  string
-	Short string
+type ShortenRequest struct {
+	LongURL  string `json:"long_url"`
 }
 
+type ShortenResponse struct {
+	Link string
+	LongURL string
+}

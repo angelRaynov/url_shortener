@@ -2,7 +2,7 @@ package http
 
 import (
 	"fmt"
-	"io"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"strings"
@@ -14,58 +14,47 @@ type urlHandler struct {
 	urlUseCase url.ShortExpander
 }
 
-func NewURLHandler(uc url.ShortExpander) url.Handler {
+func NewURLHandler(uc url.ShortExpander) url.ShortenExpandHandler {
 	return &urlHandler{urlUseCase: uc}
 }
 
-func (uh *urlHandler) Handle(w http.ResponseWriter, r *http.Request)  {
-	var urlRequest model.URL
+func (uh *urlHandler) ShortenURL(c *gin.Context)  {
+	var urlRequest model.ShortenRequest
 
-	shortenedURL := r.URL.Path[1:]
-	if shortenedURL != "" {
-		urlRequest.Short = strings.TrimSpace(shortenedURL)
-		//redirect
-			long, err := uh.urlUseCase.Expand(urlRequest.Short)
-			if err != nil {
-				err = fmt.Errorf("expanding url:%w", err)
-				log.Printf("%s", err)
-				http.Error(w, "Unable to process request", http.StatusInternalServerError)
-				return
-			}
-
-			http.Redirect(w, r, long, http.StatusMovedPermanently)
-			return
-	}
-
-	long, err := uh.getLongUrlFromBody(r)
-	if err != nil {
-		log.Printf("getting long url from body: %s",err)
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+	if err := c.BindJSON(&urlRequest); err != nil {
+		log.Printf("binding request params:%v", err)
+		c.JSON(http.StatusBadRequest, "invalid payload")
 		return
 	}
 
-	short := uh.urlUseCase.Shorten(long)
+	short := uh.urlUseCase.Shorten(urlRequest.LongURL)
 
-	_, err = io.WriteString(w, "http://localhost:1234/"+short)
-	if err != nil {
-		err = fmt.Errorf("shortening url:%w", err)
-		log.Printf("%s", err)
-		http.Error(w, "Unable to process request", http.StatusInternalServerError)
-	}
+	c.IndentedJSON(http.StatusCreated, model.ShortenResponse{
+		Link:    short,
+		LongURL: urlRequest.LongURL,
+	})
 	return
 
 }
 
-func (uh *urlHandler) getLongUrlFromBody(r *http.Request) (string, error) {
-	if r.Body == nil {
-		return "", fmt.Errorf("empty request body")
-	}
+func (uh *urlHandler) ExpandURL(c *gin.Context)  {
+	shortenedURL := c.Param("shortened")
 
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		return "", fmt.Errorf("reading body:%w", err)
-	}
+	if shortenedURL != "" {
+		shortenedURL = strings.TrimSpace(shortenedURL)
+		//redirect
+			long, err := uh.urlUseCase.Expand("http://localhost:1234/"+shortenedURL)
+			if err != nil {
+				err = fmt.Errorf("expanding url:%w", err)
+				log.Printf("%s", err)
+				c.IndentedJSON(http.StatusNotFound,"corresponding long url not found")
+				return
+			}
 
-	l := strings.TrimSpace(string(body))
-	return l, nil
+			c.Redirect(http.StatusMovedPermanently, long)
+			return
+	}
+	c.JSON(http.StatusBadRequest,"unable to process request")
+
+
 }
