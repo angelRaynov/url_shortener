@@ -14,9 +14,10 @@ import (
 func main() {
 	cfg := config.New()
 	db := database.InitDB(cfg)
-	redis := cache.NewURLCache(cfg)
 	repo := repository.NewURLRepository(db)
-	useCase := usecase.NewURLUseCase(cfg, repo, redis)
+	c := cache.NewURLCache(cfg)
+	cacheRepo := repository.NewCacheRepo(c)
+	useCase := usecase.NewURLUseCase(cfg, repo, cacheRepo)
 	handler := http.NewURLHandler(cfg, useCase)
 
 	router := gin.Default()

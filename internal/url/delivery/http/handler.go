@@ -32,9 +32,9 @@ func (uh *urlHandler) ShortenURL(c *gin.Context) {
 		return
 	}
 
-	short,err := uh.urlUseCase.Shorten(urlRequest.LongURL)
+	short, err := uh.urlUseCase.Shorten(urlRequest.LongURL)
 	if err != nil {
-		log.Printf("shortening url:%v",err)
+		log.Printf("shortening url:%v", err)
 		c.JSON(http.StatusInternalServerError, "unable to shorten url")
 
 	}

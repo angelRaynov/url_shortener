@@ -11,7 +11,7 @@ type Application struct {
 	AppPort string `mapstructure:"app_port"`
 	AppURL  string `mapstructure:"app_url"`
 
-	DBHost string `mapstructure:"db_host"`
+	DBHost     string `mapstructure:"db_host"`
 	DBKeyspace string `mapstructure:"db_keyspace"`
 
 	RedisHost string `mapstructure:"redis_host"`

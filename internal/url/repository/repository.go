@@ -26,25 +26,25 @@ func (ur *URLRepo) Store(short, long string) error {
 	return query.Exec()
 }
 
-func (ur *URLRepo) FindShort(long string) (string,error) {
+func (ur *URLRepo) FindShort(long string) (string, error) {
 	q := ur.db.Session.Query(`
 			SELECT short_url FROM short_urls WHERE long_url = ?
 		`, long)
 
 	var res string
 	err := q.Consistency(gocql.One).Scan(&res)
-	return res,err
+	return res, err
 
 }
 
-func (ur *URLRepo) FindLong(short string) (string,error) {
+func (ur *URLRepo) FindLong(short string) (string, error) {
 	q := ur.db.Session.Query(`
 			SELECT long_url FROM short_urls WHERE short_url = ?
 		`, short)
 
 	var res string
 	err := q.Consistency(gocql.One).Scan(&res)
-	return res,err
+	return res, err
 }
 
 func (ur *URLRepo) IsShortURLUnique(short string) (bool, error) {
@@ -56,4 +56,3 @@ func (ur *URLRepo) IsShortURLUnique(short string) (bool, error) {
 	return count == 0, nil
 
 }
-

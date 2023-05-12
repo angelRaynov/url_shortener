@@ -5,7 +5,6 @@ import (
 	"log"
 	"math/rand"
 	"url_shortener/config"
-	"url_shortener/internal/pkg/cache"
 	"url_shortener/internal/url"
 )
 
@@ -14,22 +13,22 @@ const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 type urlUseCase struct {
 	cfg   *config.Application
 	repo  url.StoreFinder
-	cache cache.GetCacher
+	cache url.GetCacher
 }
 
-func NewURLUseCase( cfg *config.Application, r url.StoreFinder, cache cache.GetCacher) url.ShortExpander {
+func NewURLUseCase(cfg *config.Application, r url.StoreFinder, cache url.GetCacher) url.ShortExpander {
 	return &urlUseCase{
-		repo: r,
-		cfg:  cfg,
+		repo:  r,
+		cfg:   cfg,
 		cache: cache,
 	}
 }
-func (uc *urlUseCase) Shorten(long string) (string,error) {
+func (uc *urlUseCase) Shorten(long string) (string, error) {
 	//check redis
 	short, err := uc.cache.GetShort(long)
 	if err == nil {
 		log.Printf("found short url in cache %s", short)
-		return short,nil
+		return short, nil
 	}
 
 	//check db
@@ -39,7 +38,7 @@ func (uc *urlUseCase) Shorten(long string) (string,error) {
 		return short, nil
 	}
 
-	id,err := uc.generateShortURL()
+	id, err := uc.generateShortURL()
 	if err != nil {
 		log.Printf("checking for uniqueness:%v", err)
 	}
@@ -48,15 +47,15 @@ func (uc *urlUseCase) Shorten(long string) (string,error) {
 
 	err = uc.repo.Store(short, long)
 	if err != nil {
-		return "", fmt.Errorf("storing url:%w",err)
+		return "", fmt.Errorf("storing url:%w", err)
 	}
 	err = uc.cache.Cache(short, long)
 	if err != nil {
-		return "", fmt.Errorf("caching url:%w",err)
+		return "", fmt.Errorf("caching url:%w", err)
 	}
 	log.Printf("url shortened %s\n", short)
 
-	return short,nil
+	return short, nil
 }
 
 func (uc *urlUseCase) Expand(short string) (string, error) {
@@ -64,7 +63,7 @@ func (uc *urlUseCase) Expand(short string) (string, error) {
 	long, err := uc.cache.GetLong(short)
 	if err == nil {
 		log.Printf("found short url in cache %s", short)
-		return long,nil
+		return long, nil
 	}
 
 	//check db
@@ -77,7 +76,7 @@ func (uc *urlUseCase) Expand(short string) (string, error) {
 
 }
 
-func (uc *urlUseCase) generateShortURL() (string,error) {
+func (uc *urlUseCase) generateShortURL() (string, error) {
 	lengthConstraint := 5
 	idBytes := make([]byte, lengthConstraint)
 
@@ -89,7 +88,7 @@ func (uc *urlUseCase) generateShortURL() (string,error) {
 
 		isUnique, err := uc.repo.IsShortURLUnique(short)
 		if err != nil {
-			return "",fmt.Errorf("generating short url:%w",err)
+			return "", fmt.Errorf("generating short url:%w", err)
 		}
 
 		if isUnique {

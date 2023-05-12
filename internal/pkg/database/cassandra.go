@@ -9,7 +9,7 @@ import (
 
 type DB struct {
 	Session *gocql.Session
-	cfg *config.Application
+	cfg     *config.Application
 }
 
 func InitDB(cfg *config.Application) *DB {
@@ -34,7 +34,6 @@ func InitDB(cfg *config.Application) *DB {
 	if err != nil {
 		log.Fatalf("create cassandra session:%v", err)
 	}
-
 
 	return &DB{
 		Session: session,
