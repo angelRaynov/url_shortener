@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"url_shortener/config"
+	"url_shortener/helper"
 	"url_shortener/internal/model"
 	"url_shortener/internal/url"
 )
@@ -33,6 +34,11 @@ func (uh *urlHandler) ShortenURL(c *gin.Context) {
 		return
 	}
 
+	if !helper.IsValidURL(urlRequest.LongURL) {
+		uh.logger.Debugw("invalid url", "long_url", urlRequest.LongURL)
+		c.JSON(http.StatusBadRequest, "invalid url")
+	}
+
 	short, err := uh.urlUseCase.Shorten(urlRequest.LongURL)
 	if err != nil {
 		uh.logger.Warnw("shortening url", "error", err)
@@ -50,9 +56,9 @@ func (uh *urlHandler) ShortenURL(c *gin.Context) {
 func (uh *urlHandler) ExpandURL(c *gin.Context) {
 	shortenedURL := c.Param("shortened")
 
-	if shortenedURL == "" {
-		uh.logger.Warnw("unable to expand empty url")
-		c.JSON(http.StatusBadRequest, "shortened url can not be empty")
+	if !helper.IsValidURL(shortenedURL) {
+		uh.logger.Debugw("invalid url", "short_url", shortenedURL)
+		c.JSON(http.StatusBadRequest, "invalid url")
 	}
 
 	shortenedURL = uh.cfg.AppURL + strings.TrimSpace(shortenedURL)
