@@ -2,7 +2,7 @@ package database
 
 import (
 	"github.com/gocql/gocql"
-	"log"
+	"go.uber.org/zap"
 	"time"
 	"url_shortener/config"
 )
@@ -12,7 +12,7 @@ type DB struct {
 	cfg     *config.Application
 }
 
-func InitDB(cfg *config.Application) *DB {
+func InitDB(cfg *config.Application, logger *zap.SugaredLogger) *DB {
 	// create a new cluster configuration object
 	cluster := gocql.NewCluster(cfg.DBHost)
 
@@ -32,8 +32,10 @@ func InitDB(cfg *config.Application) *DB {
 	// create a new session using the cluster configuration
 	session, err := cluster.CreateSession()
 	if err != nil {
-		log.Fatalf("create cassandra session:%v", err)
+		logger.Fatalf("creating db session:%v", err)
 	}
+
+	logger.Debug("db started")
 
 	return &DB{
 		Session: session,

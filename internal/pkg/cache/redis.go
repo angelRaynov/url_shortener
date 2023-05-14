@@ -3,7 +3,7 @@ package cache
 import (
 	"context"
 	"github.com/go-redis/redis/v9"
-	"log"
+	"go.uber.org/zap"
 	"time"
 	"url_shortener/config"
 )
@@ -14,7 +14,7 @@ type Cache struct {
 	Ctx    context.Context
 }
 
-func NewURLCache(cfg *config.Application) *Cache {
+func NewURLCache(cfg *config.Application, logger *zap.SugaredLogger) *Cache {
 	c := redis.NewClient(&redis.Options{
 		Addr:        cfg.RedisHost,
 		DialTimeout: 5 * time.Second,
@@ -22,7 +22,11 @@ func NewURLCache(cfg *config.Application) *Cache {
 	})
 
 	if err := c.Ping(context.Background()).Err(); err != nil {
-		log.Fatal(err)
+		logger.Fatalf("creating cache client:%v", err)
+
 	}
+
+	logger.Debug("cache started")
+
 	return &Cache{Client: c, Ctx: context.Background()}
 }

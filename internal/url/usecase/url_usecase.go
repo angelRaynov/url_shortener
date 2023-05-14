@@ -2,7 +2,7 @@ package usecase
 
 import (
 	"fmt"
-	"log"
+	"go.uber.org/zap"
 	"math/rand"
 	"url_shortener/config"
 	"url_shortener/internal/url"
@@ -11,36 +11,38 @@ import (
 const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 
 type urlUseCase struct {
-	cfg   *config.Application
-	repo  url.StoreFinder
-	cache url.GetCacher
+	cfg    *config.Application
+	repo   url.StoreFinder
+	cache  url.GetCacher
+	logger *zap.SugaredLogger
 }
 
-func NewURLUseCase(cfg *config.Application, r url.StoreFinder, cache url.GetCacher) url.ShortExpander {
+func NewURLUseCase(cfg *config.Application, r url.StoreFinder, cache url.GetCacher, logger *zap.SugaredLogger) url.ShortExpander {
 	return &urlUseCase{
-		repo:  r,
-		cfg:   cfg,
-		cache: cache,
+		repo:   r,
+		cfg:    cfg,
+		cache:  cache,
+		logger: logger,
 	}
 }
 func (uc *urlUseCase) Shorten(long string) (string, error) {
 	//check redis
 	short, err := uc.cache.GetShort(long)
 	if err == nil {
-		log.Printf("found short url in cache %s", short)
+		uc.logger.Debugw("found short url in cache", "short_url", short, "long_url", long)
 		return short, nil
 	}
 
 	//check db
 	short, err = uc.repo.FindShort(long)
 	if err == nil {
-		log.Printf("found short url in db %s", short)
+		uc.logger.Debugw("found short url in db", "short_url", short, "long_url", long)
 		return short, nil
 	}
 
 	id, err := uc.generateShortURL()
 	if err != nil {
-		log.Printf("checking for uniqueness:%v", err)
+		return "", fmt.Errorf("assuring url uniqueness:%w", err)
 	}
 
 	short = uc.cfg.AppURL + id
@@ -49,12 +51,13 @@ func (uc *urlUseCase) Shorten(long string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("storing url:%w", err)
 	}
+
 	err = uc.cache.Cache(short, long)
 	if err != nil {
 		return "", fmt.Errorf("caching url:%w", err)
 	}
-	log.Printf("url shortened %s\n", short)
 
+	uc.logger.Infow("url shortened", "short_url", short, "long_url", long)
 	return short, nil
 }
 
@@ -62,7 +65,7 @@ func (uc *urlUseCase) Expand(short string) (string, error) {
 	//check redis
 	long, err := uc.cache.GetLong(short)
 	if err == nil {
-		log.Printf("found short url in cache %s", short)
+		uc.logger.Debugw("found long url in cache ", "long_url", long, "short_url", short)
 		return long, nil
 	}
 
@@ -71,7 +74,8 @@ func (uc *urlUseCase) Expand(short string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("finding cached long url:%w", err)
 	}
-	log.Printf("found cached long url %s", long)
+
+	uc.logger.Debugw("found long url in db ", "long_url", long, "short_url", short)
 	return long, nil
 
 }
@@ -88,13 +92,13 @@ func (uc *urlUseCase) generateShortURL() (string, error) {
 
 		isUnique, err := uc.repo.IsShortURLUnique(short)
 		if err != nil {
-			return "", fmt.Errorf("generating short url:%w", err)
+			return "", fmt.Errorf("checking for uniqueness:%w", err)
 		}
 
 		if isUnique {
 			return short, nil
 		}
-		log.Printf("short url %s is not unique, generating new one\n", short)
+		uc.logger.Warnw("short url is not unique, generating new one", "short_url", short)
 	}
 
 }

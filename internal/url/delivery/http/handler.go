@@ -1,9 +1,8 @@
 package http
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"log"
+	"go.uber.org/zap"
 	"net/http"
 	"strings"
 	"url_shortener/config"
@@ -14,12 +13,14 @@ import (
 type urlHandler struct {
 	urlUseCase url.ShortExpander
 	cfg        *config.Application
+	logger     *zap.SugaredLogger
 }
 
-func NewURLHandler(cfg *config.Application, uc url.ShortExpander) url.ShortenExpandHandler {
+func NewURLHandler(cfg *config.Application, uc url.ShortExpander, logger *zap.SugaredLogger) url.ShortenExpandHandler {
 	return &urlHandler{
 		urlUseCase: uc,
 		cfg:        cfg,
+		logger:     logger,
 	}
 }
 
@@ -27,17 +28,17 @@ func (uh *urlHandler) ShortenURL(c *gin.Context) {
 	var urlRequest model.ShortenRequest
 
 	if err := c.BindJSON(&urlRequest); err != nil {
-		log.Printf("binding request params:%v", err)
+		uh.logger.Warnw("binding request params", "error", err)
 		c.JSON(http.StatusBadRequest, "invalid payload")
 		return
 	}
 
 	short, err := uh.urlUseCase.Shorten(urlRequest.LongURL)
 	if err != nil {
-		log.Printf("shortening url:%v", err)
-		c.JSON(http.StatusInternalServerError, "unable to shorten url")
-
+		uh.logger.Warnw("shortening url", "error", err)
+		c.JSON(http.StatusInternalServerError, "unable to shorten url at the moment, please try again later")
 	}
+
 	c.IndentedJSON(http.StatusCreated, model.ShortenResponse{
 		Link:    short,
 		LongURL: urlRequest.LongURL,
@@ -50,15 +51,15 @@ func (uh *urlHandler) ExpandURL(c *gin.Context) {
 	shortenedURL := c.Param("shortened")
 
 	if shortenedURL == "" {
-		c.JSON(http.StatusBadRequest, "unable to process request")
+		uh.logger.Warnw("unable to expand empty url")
+		c.JSON(http.StatusBadRequest, "shortened url can not be empty")
 	}
 
 	shortenedURL = uh.cfg.AppURL + strings.TrimSpace(shortenedURL)
-	long, err := uh.urlUseCase.Expand(shortenedURL)
 
+	long, err := uh.urlUseCase.Expand(shortenedURL)
 	if err != nil {
-		err = fmt.Errorf("expanding url:%w", err)
-		log.Printf("%s", err)
+		uh.logger.Warnw("expanding url", "short_url", shortenedURL, "error", err)
 		c.IndentedJSON(http.StatusNotFound, "corresponding long url not found")
 		return
 	}
