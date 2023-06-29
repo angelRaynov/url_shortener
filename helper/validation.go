@@ -16,13 +16,13 @@ func IsValidURL(input string) bool {
 	return match
 
 }
-func hasNonASCIIDomain(domain string) bool {
-	for _, c := range domain {
+func IsASCII(input string) bool {
+	for _, c := range input {
 		if c > 127 {
-			return true
+			return false
 		}
 	}
-	return false
+	return true
 }
 
 //var validURLs = []string{

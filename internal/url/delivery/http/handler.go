@@ -57,18 +57,24 @@ func (uh *urlHandler) ShortenURL(c *gin.Context) {
 }
 
 func (uh *urlHandler) ExpandURL(c *gin.Context) {
-	shortenedURL := c.Param("shortened")
-
-	if !helper.IsValidURL(shortenedURL) {
-		uh.logger.Debugw("invalid url", "short_url", shortenedURL)
-		c.JSON(http.StatusBadRequest, "invalid url")
+	var urlRequest model.ExpandRequest
+	if err := c.BindJSON(&urlRequest); err != nil {
+		uh.logger.Warnw("binding request params", "error", err)
+		c.JSON(http.StatusBadRequest, "invalid payload")
+		return
 	}
 
-	shortenedURL = uh.cfg.AppURL + strings.TrimSpace(shortenedURL)
+	urlRequest.ShortURL = strings.TrimSpace(urlRequest.ShortURL)
 
-	long, err := uh.urlUseCase.Expand(shortenedURL)
+	if !helper.IsValidURL(urlRequest.ShortURL) {
+		uh.logger.Debugw("invalid url", "short_url", urlRequest.ShortURL)
+		c.JSON(http.StatusBadRequest, "invalid url")
+		return
+	}
+
+	long, err := uh.urlUseCase.Expand(urlRequest.ShortURL)
 	if err != nil {
-		uh.logger.Warnw("expanding url", "short_url", shortenedURL, "error", err)
+		uh.logger.Warnw("expanding url", "short_url", urlRequest.ShortURL, "error", err)
 		c.IndentedJSON(http.StatusNotFound, "corresponding long url not found")
 		return
 	}

@@ -14,25 +14,25 @@ func replaceUnicodeSymbolsWithASCII(input string) string {
 		fmt.Println("Error parsing URL:", err)
 		return input
 	}
+
 	if parsedURL.Host == "" {
 		fmt.Println("unable to parse host")
 		return input
 	}
 	// Check if the host contains non-ASCII characters
-	isNonASCIIDomain := hasNonASCIIDomain(parsedURL.Host)
-
-	if isNonASCIIDomain {
-		// Encode the domain using Punycode
-		encodedHost, err := idna.ToASCII(parsedURL.Host)
-		if err != nil {
-			fmt.Println("Error encoding Punycode:", err)
-			return input
-		}
-
-		// Rebuild the URL with the encoded domain
-		parsedURL.Host = encodedHost
+	if IsASCII(parsedURL.Host) {
+		return input
 	}
 
+	// Encode the domain using Punycode
+	encodedHost, err := idna.ToASCII(parsedURL.Host)
+	if err != nil {
+		fmt.Println("Error encoding Punycode:", err)
+		return input
+	}
+
+	// Rebuild the URL with the encoded domain
+	parsedURL.Host = encodedHost
 	// Get the converted URL string
 	fmt.Println("converted", parsedURL.String())
 	return parsedURL.String()
@@ -47,6 +47,7 @@ func prependProtocolScheme(input string) string {
 }
 
 func LinkPreconditioning(input string) string {
+	input = strings.TrimSpace(input)
 	input = prependProtocolScheme(input)
 	input = replaceUnicodeSymbolsWithASCII(input)
 	return input

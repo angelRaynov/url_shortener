@@ -27,8 +27,8 @@ func main() {
 	handler := http.NewURLHandler(cfg, useCase, l)
 
 	router := gin.Default()
-	router.POST("/", handler.ShortenURL)
-	router.GET("/:shortened", handler.ExpandURL)
+	router.POST("/shorten", handler.ShortenURL)
+	router.POST("/expand", handler.ExpandURL)
 
 	l.Infof("listening on port :%s", cfg.AppPort)
 
