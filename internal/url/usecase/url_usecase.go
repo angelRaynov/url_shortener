@@ -4,20 +4,32 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"math/rand"
-	"url_shortener/config"
-	"url_shortener/internal/url"
+	"url_shortener/infrastructure/config"
 )
 
 const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 
+type getCacher interface {
+	GetShort(long string) (string, error)
+	GetLong(short string) (string, error)
+	Cache(short, long string) error
+}
+
+type storeFinder interface {
+	Store(short, long string) error
+	FindShort(long string) (string, error)
+	FindLong(short string) (string, error)
+	IsShortURLUnique(short string) (bool, error)
+}
+
 type urlUseCase struct {
 	cfg    *config.Application
-	repo   url.StoreFinder
-	cache  url.GetCacher
+	repo   storeFinder
+	cache  getCacher
 	logger *zap.SugaredLogger
 }
 
-func NewURLUseCase(cfg *config.Application, r url.StoreFinder, cache url.GetCacher, logger *zap.SugaredLogger) url.ShortExpander {
+func NewURLUseCase(cfg *config.Application, r storeFinder, cache getCacher, logger *zap.SugaredLogger) *urlUseCase {
 	return &urlUseCase{
 		repo:   r,
 		cfg:    cfg,

@@ -4,7 +4,7 @@ import (
 	"github.com/gocql/gocql"
 	"go.uber.org/zap"
 	"time"
-	"url_shortener/config"
+	"url_shortener/infrastructure/config"
 )
 
 type DB struct {

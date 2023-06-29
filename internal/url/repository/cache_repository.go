@@ -3,15 +3,14 @@ package repository
 import (
 	"github.com/go-redis/redis/v9"
 	"time"
-	"url_shortener/internal/pkg/cache"
-	"url_shortener/internal/url"
+	"url_shortener/infrastructure/cache"
 )
 
 type cacheRepo struct {
 	cache *cache.Cache
 }
 
-func NewCacheRepo(c *cache.Cache) url.GetCacher {
+func NewCacheRepo(c *cache.Cache) *cacheRepo {
 	return &cacheRepo{cache: c}
 }
 

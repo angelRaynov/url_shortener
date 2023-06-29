@@ -5,19 +5,23 @@ import (
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
-	"url_shortener/config"
 	"url_shortener/helper"
+	"url_shortener/infrastructure/config"
 	"url_shortener/internal/model"
-	"url_shortener/internal/url"
 )
 
+type shortExpander interface {
+	Shorten(long string) (string, error)
+	Expand(short string) (string, error)
+}
+
 type urlHandler struct {
-	urlUseCase url.ShortExpander
+	urlUseCase shortExpander
 	cfg        *config.Application
 	logger     *zap.SugaredLogger
 }
 
-func NewURLHandler(cfg *config.Application, uc url.ShortExpander, logger *zap.SugaredLogger) url.ShortenExpandHandler {
+func NewURLHandler(cfg *config.Application, uc shortExpander, logger *zap.SugaredLogger) *urlHandler {
 	return &urlHandler{
 		urlUseCase: uc,
 		cfg:        cfg,

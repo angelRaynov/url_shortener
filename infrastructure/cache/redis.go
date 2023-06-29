@@ -5,7 +5,7 @@ import (
 	"github.com/go-redis/redis/v9"
 	"go.uber.org/zap"
 	"time"
-	"url_shortener/config"
+	"url_shortener/infrastructure/config"
 )
 
 type Cache struct {

@@ -1,14 +1,14 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	"url_shortener/config"
-	"url_shortener/internal/pkg/cache"
-	"url_shortener/internal/pkg/database"
+	"url_shortener/infrastructure/cache"
+	"url_shortener/infrastructure/config"
+	"url_shortener/infrastructure/database"
+	"url_shortener/infrastructure/logger"
+	"url_shortener/infrastructure/server"
 	"url_shortener/internal/url/delivery/http"
 	"url_shortener/internal/url/repository"
 	"url_shortener/internal/url/usecase"
-	"url_shortener/logger"
 )
 
 func main() {
@@ -26,12 +26,7 @@ func main() {
 
 	handler := http.NewURLHandler(cfg, useCase, l)
 
-	router := gin.Default()
-	router.POST("/shorten", handler.ShortenURL)
-	router.POST("/expand", handler.ExpandURL)
+	srv := server.NewServer(cfg, l, handler)
 
-	l.Infof("listening on port :%s", cfg.AppPort)
-
-	l.Fatal(router.Run(":" + cfg.AppPort))
-
+	srv.Run()
 }

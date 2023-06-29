@@ -10,21 +10,6 @@ import (
 	"time"
 )
 
-type ILogger interface {
-	//Infow(string, ...interface{})
-	//Errorw(string, ...interface{})
-	//Warnw(string, ...interface{})
-	//Debugw(string, ...interface{})
-	//Info(...interface{})
-	//Error(...interface{})
-	//Warn(...interface{})
-	//Debug(...interface{})
-	//Infof(string, ...interface{})
-	//Errorf(string, ...interface{})
-	//Warnf(string, ...interface{})
-	//Debugf(string, ...interface{})
-}
-
 // InitLogger initializes a new zap logger with default
 // JSON formatter and call stack property
 func Init(appMode string) *zap.SugaredLogger {
