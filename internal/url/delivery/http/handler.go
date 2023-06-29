@@ -27,22 +27,25 @@ func NewURLHandler(cfg *config.Application, uc url.ShortExpander, logger *zap.Su
 
 func (uh *urlHandler) ShortenURL(c *gin.Context) {
 	var urlRequest model.ShortenRequest
-
 	if err := c.BindJSON(&urlRequest); err != nil {
 		uh.logger.Warnw("binding request params", "error", err)
 		c.JSON(http.StatusBadRequest, "invalid payload")
 		return
 	}
 
+	urlRequest.LongURL = helper.LinkPreconditioning(urlRequest.LongURL)
+
 	if !helper.IsValidURL(urlRequest.LongURL) {
 		uh.logger.Debugw("invalid url", "long_url", urlRequest.LongURL)
 		c.JSON(http.StatusBadRequest, "invalid url")
+		return
 	}
 
 	short, err := uh.urlUseCase.Shorten(urlRequest.LongURL)
 	if err != nil {
 		uh.logger.Warnw("shortening url", "error", err)
 		c.JSON(http.StatusInternalServerError, "unable to shorten url at the moment, please try again later")
+		return
 	}
 
 	c.IndentedJSON(http.StatusCreated, model.ShortenResponse{

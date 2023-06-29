@@ -17,9 +17,9 @@ redirect:
 	curl http://localhost:1234/$(URL_ID)
 
 shorten:
-	curl http://localhost:1234/ \
+	curl http://localhost:8080/ \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	--data-raw $(URL)
+	--data-raw '{"long_url":"✪df.ws/1234ssaad"}'
 
 test:
 	go test -v -cover

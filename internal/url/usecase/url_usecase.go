@@ -81,7 +81,7 @@ func (uc *urlUseCase) Expand(short string) (string, error) {
 }
 
 func (uc *urlUseCase) generateShortURL() (string, error) {
-	lengthConstraint := 5
+	lengthConstraint := 7
 	idBytes := make([]byte, lengthConstraint)
 
 	for {
