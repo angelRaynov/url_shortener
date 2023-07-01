@@ -11,6 +11,8 @@ type Application struct {
 	AppPort string `mapstructure:"app_port"`
 	AppURL  string `mapstructure:"app_url"`
 
+	JWTSecret string `mapstructure:"jwt_secret"`
+
 	DBHost     string `mapstructure:"db_host"`
 	DBKeyspace string `mapstructure:"db_keyspace"`
 

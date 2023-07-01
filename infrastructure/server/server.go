@@ -42,7 +42,7 @@ func NewServer(cfg *config.Application, log Logger, h ShortExpander) *server {
 
 func (s *server) Run() {
 	router := gin.Default()
-	router.POST("/shorten", s.handler.ShortenURL)
+	router.POST("/shorten", AuthMiddleware(s.cfg), s.handler.ShortenURL)
 	router.POST("/expand", s.handler.ExpandURL)
 
 	s.log.Infof("listening on port :%s", s.cfg.AppPort)
