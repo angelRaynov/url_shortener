@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"
@@ -39,9 +38,15 @@ func AuthMiddleware(cfg *config.Application) gin.HandlerFunc {
 
 		// Extract the username claim from the token's payload
 		if claims, ok := token.Claims.(jwt.MapClaims); ok {
-			username := claims["username"].(string)
 			// Store the username in the Gin context
+			username := claims["username"].(string)
 			c.Set("username", username)
+
+			uid := claims["uid"].(string)
+			c.Set("owner_uid", uid)
+
+			email := claims["email"].(string)
+			c.Set("email", email)
 		}
 
 		// Token is valid, proceed with the next handler

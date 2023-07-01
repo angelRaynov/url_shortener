@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"fmt"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 	"math/rand"
 	"url_shortener/infrastructure/config"
@@ -16,7 +17,7 @@ type getCacher interface {
 }
 
 type storeFinder interface {
-	Store(short, long string) error
+	Store(uid, ownerUID, short, long string) error
 	FindShort(long string) (string, error)
 	FindLong(short string) (string, error)
 	IsShortURLUnique(short string) (bool, error)
@@ -37,7 +38,7 @@ func NewURLUseCase(cfg *config.Application, r storeFinder, cache getCacher, logg
 		logger: logger,
 	}
 }
-func (uc *urlUseCase) Shorten(long string) (string, error) {
+func (uc *urlUseCase) Shorten(ownerID, long string) (string, error) {
 	//check redis
 	short, err := uc.cache.GetShort(long)
 	if err == nil {
@@ -58,8 +59,8 @@ func (uc *urlUseCase) Shorten(long string) (string, error) {
 	}
 
 	short = uc.cfg.AppURL + id
-
-	err = uc.repo.Store(short, long)
+	uid := uuid.New()
+	err = uc.repo.Store(uid.String(), ownerID, short, long)
 	if err != nil {
 		return "", fmt.Errorf("storing url:%w", err)
 	}

@@ -20,7 +20,7 @@ shorten:
 	@URL=$(URL) \
 	curl -X POST http://localhost:8080/shorten \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFsaWNlIiwiZXhwIjoxNjg4MjI1NzQ3fQ.UWq27-0q8Xg5_kgtgkU6RH2MaErjAn7PyFgBbG7RC_Q' \
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjViNDQ5MTM4LTBhMjAtNGFkYi05YzU3LWE0MjAwZjg2ZjhmMCIsImV4cCI6MTY4ODI0NjE1OX0.CG6GT-nd-PltRXopGUst9DsKPatxFf5PFuZJ0R8Z8go' \
 	--data-raw '{"long_url":"$(URL)"}'
 
 expand:

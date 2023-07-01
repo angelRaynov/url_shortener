@@ -11,7 +11,7 @@ import (
 )
 
 type shortExpander interface {
-	Shorten(long string) (string, error)
+	Shorten(ownerID, long string) (string, error)
 	Expand(short string) (string, error)
 }
 
@@ -45,7 +45,14 @@ func (uh *urlHandler) ShortenURL(c *gin.Context) {
 		return
 	}
 
-	short, err := uh.urlUseCase.Shorten(urlRequest.LongURL)
+	contextUser, err := helper.GetUserFromContext(c)
+	if err != nil {
+		uh.logger.Warnw("fetching user from context", "error", err)
+		c.JSON(http.StatusInternalServerError, "unable to shorten url at the moment, please try again later")
+		return
+	}
+
+	short, err := uh.urlUseCase.Shorten(contextUser.UID, urlRequest.LongURL)
 	if err != nil {
 		uh.logger.Warnw("shortening url", "error", err)
 		c.JSON(http.StatusInternalServerError, "unable to shorten url at the moment, please try again later")

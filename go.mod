@@ -7,6 +7,7 @@ require (
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/gocql/gocql v1.4.0
 	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/google/uuid v1.1.2
 	github.com/spf13/viper v1.15.0
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.7.0
