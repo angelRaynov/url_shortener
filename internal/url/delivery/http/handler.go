@@ -13,6 +13,7 @@ import (
 type shortExpander interface {
 	Shorten(ownerID, long string) (string, error)
 	Expand(short string) (string, error)
+	FetchLinksPerUser(ownerID string) ([]model.URL, error)
 }
 
 type urlHandler struct {
@@ -91,5 +92,24 @@ func (uh *urlHandler) ExpandURL(c *gin.Context) {
 	}
 
 	c.Redirect(http.StatusMovedPermanently, long)
+	return
+}
+
+func (uh *urlHandler) MyLinks(c *gin.Context) {
+	contextUser, err := helper.GetUserFromContext(c)
+	if err != nil {
+		uh.logger.Warnw("fetching user from context", "error", err)
+		c.JSON(http.StatusInternalServerError, "unable to get your links, please try again later")
+		return
+	}
+
+	links, err := uh.urlUseCase.FetchLinksPerUser(contextUser.UID)
+	if err != nil {
+		uh.logger.Warnw("getting my links", "owner_id", contextUser.UID, "error", err)
+		c.IndentedJSON(http.StatusNotFound, "unable to get your links, please try again later")
+		return
+	}
+
+	c.IndentedJSON(http.StatusOK, links)
 	return
 }

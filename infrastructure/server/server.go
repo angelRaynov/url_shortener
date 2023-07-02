@@ -8,6 +8,7 @@ import (
 type ShortExpander interface {
 	ShortenURL(c *gin.Context)
 	ExpandURL(c *gin.Context)
+	MyLinks(c *gin.Context)
 }
 
 type Logger interface {
@@ -43,7 +44,8 @@ func NewServer(cfg *config.Application, log Logger, h ShortExpander) *server {
 func (s *server) Run() {
 	router := gin.Default()
 	router.POST("/shorten", AuthMiddleware(s.cfg), s.handler.ShortenURL)
-	router.POST("/expand", s.handler.ExpandURL)
+	router.POST("/expand", AuthMiddleware(s.cfg), s.handler.ExpandURL)
+	router.GET("/my", AuthMiddleware(s.cfg), s.handler.MyLinks)
 
 	s.log.Infof("listening on port :%s", s.cfg.AppPort)
 

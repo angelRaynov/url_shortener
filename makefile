@@ -20,8 +20,14 @@ shorten:
 	@URL=$(URL) \
 	curl -X POST http://localhost:8080/shorten \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjViNDQ5MTM4LTBhMjAtNGFkYi05YzU3LWE0MjAwZjg2ZjhmMCIsImV4cCI6MTY4ODI0NjE1OX0.CG6GT-nd-PltRXopGUst9DsKPatxFf5PFuZJ0R8Z8go' \
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjViNDQ5MTM4LTBhMjAtNGFkYi05YzU3LWE0MjAwZjg2ZjhmMCIsImV4cCI6MTY4ODMxNzAzMX0.N9gD_rEdAt_W73x_8iFTbBgxxar-VeDTaywWxOhrBJM' \
 	--data-raw '{"long_url":"$(URL)"}'
+
+my:
+	@URL=$(URL) \
+	curl http://localhost:8080/my \
+	-H 'Content-Type: text/plain;charset=UTF-8' \
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjViNDQ5MTM4LTBhMjAtNGFkYi05YzU3LWE0MjAwZjg2ZjhmMCIsImV4cCI6MTY4ODMxNzAzMX0.N9gD_rEdAt_W73x_8iFTbBgxxar-VeDTaywWxOhrBJM' \
 
 expand:
 	@URL=$(URL) \

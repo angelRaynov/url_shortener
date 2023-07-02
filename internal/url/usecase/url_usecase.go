@@ -6,6 +6,7 @@ import (
 	"go.uber.org/zap"
 	"math/rand"
 	"url_shortener/infrastructure/config"
+	"url_shortener/internal/model"
 )
 
 const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
@@ -21,6 +22,7 @@ type storeFinder interface {
 	FindShort(long string) (string, error)
 	FindLong(short string) (string, error)
 	IsShortURLUnique(short string) (bool, error)
+	FindLinksPerUser(ownerID string) ([]model.URL, error)
 }
 
 type urlUseCase struct {
@@ -113,5 +115,17 @@ func (uc *urlUseCase) generateShortURL() (string, error) {
 		}
 		uc.logger.Warnw("short url is not unique, generating new one", "short_url", short)
 	}
+
+}
+
+func (uc *urlUseCase) FetchLinksPerUser(ownerID string) ([]model.URL, error) {
+	//check db
+	links, err := uc.repo.FindLinksPerUser(ownerID)
+	if err != nil {
+		return nil, fmt.Errorf("finding links per user:%w", err)
+	}
+
+	uc.logger.Debugw("links per user fetched", "count", len(links), "owner_id", ownerID)
+	return links, nil
 
 }
