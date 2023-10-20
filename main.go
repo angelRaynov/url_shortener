@@ -6,9 +6,12 @@ import (
 	"url_shortener/infrastructure/database"
 	"url_shortener/infrastructure/logger"
 	"url_shortener/infrastructure/server"
-	"url_shortener/internal/url/delivery/http"
-	"url_shortener/internal/url/repository"
-	"url_shortener/internal/url/usecase"
+	authHTTP "url_shortener/internal/authentication/delivery/http"
+	authRepo "url_shortener/internal/authentication/repository"
+	authUseCase "url_shortener/internal/authentication/usecase"
+	urlHTTP "url_shortener/internal/url/delivery/http"
+	urlRepo "url_shortener/internal/url/repository"
+	urlUseCase "url_shortener/internal/url/usecase"
 )
 
 func main() {
@@ -16,17 +19,21 @@ func main() {
 
 	l := logger.Init(cfg.AppMode)
 
-	db := database.InitDB(cfg, l)
-	repo := repository.NewURLRepository(db)
+	db := database.Init(cfg, l)
+	repo := urlRepo.NewURLRepository(db)
 
 	c := cache.NewURLCache(cfg, l)
-	cacheRepo := repository.NewCacheRepo(c)
+	cacheRepo := urlRepo.NewCacheRepo(c)
 
-	useCase := usecase.NewURLUseCase(cfg, repo, cacheRepo, l)
+	useCase := urlUseCase.NewURLUseCase(cfg, repo, cacheRepo, l)
 
-	handler := http.NewURLHandler(cfg, useCase, l)
+	uh := urlHTTP.NewURLHandler(cfg, useCase, l)
 
-	srv := server.NewServer(cfg, l, handler)
+	ar := authRepo.NewAuthRepository(db)
+	auc := authUseCase.NewAuthUseCase(cfg, l, ar)
+	ah := authHTTP.NewAuthHandler(l, auc)
+
+	srv := server.NewServer(cfg, l, uh, ah)
 
 	srv.Run()
 }

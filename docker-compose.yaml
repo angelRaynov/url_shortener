@@ -12,23 +12,36 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - cassandra
+      - mysql
       - redis
-  cassandra:
-    image: cassandra:latest
-    container_name: cass
+#  cassandra:
+#    image: cassandra:latest
+#    container_name: cass
+#    restart: always
+#    environment:
+#      - CASSANDRA_CLUSTER_NAME=url-shortener-cluster
+#    volumes:
+#      - .docker/cassandra/data:/var/lib/cassandra
+#      - .docker/cassandra/init.cql:/docker-entrypoint-initdb.d/setup.cql
+#    ports:
+#      - "9042:9042"
+  mysql:
+    image: mysql:latest
+    container_name: mysql
     restart: always
-    environment:
-      - CASSANDRA_CLUSTER_NAME=url-shortener-cluster
-    volumes:
-      - .docker/cassandra/data:/var/lib/cassandra
-      - .docker/cassandra/init.cql:/docker-entrypoint-initdb.d/setup.cql
     ports:
-      - "9042:9042"
-
+      - '3306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: url_shortener
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      #      - .docker/pg/postgres-data:/var/lib/postgresql/data
+      # copy the sql script to create tables
+      - .docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
   redis:
     container_name: redis
     image: redis:latest
     restart: always
-volumes:
-  cassandra-data:
+

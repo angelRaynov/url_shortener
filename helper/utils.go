@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"url_shortener/internal/model"
@@ -45,4 +47,15 @@ func GetUserFromContext(c *gin.Context) (*model.User, error) {
 		Email:    email,
 		UID:      uid,
 	}, nil
+}
+
+func GenerateSalt() (string, error) {
+	saltBytes := make([]byte, 16) // Generate 16 random bytes for salt
+	_, err := rand.Read(saltBytes)
+	if err != nil {
+		return "", err
+	}
+
+	salt := base64.StdEncoding.EncodeToString(saltBytes)
+	return salt, nil
 }

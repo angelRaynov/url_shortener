@@ -11,10 +11,17 @@ type Application struct {
 	AppPort string `mapstructure:"app_port"`
 	AppURL  string `mapstructure:"app_url"`
 
-	JWTSecret string `mapstructure:"jwt_secret"`
+	JWTSecret     string `mapstructure:"jwt_secret"`
+	JWTExpiration int    `mapstructure:"jwt_expiration_hour"`
+
+	CassHost     string `mapstructure:"cass_host"`
+	CassKeyspace string `mapstructure:"cass_keyspace"`
 
 	DBHost     string `mapstructure:"db_host"`
-	DBKeyspace string `mapstructure:"db_keyspace"`
+	DBUser     string `mapstructure:"db_user"`
+	DBPassword string `mapstructure:"db_password"`
+	DBName     string `mapstructure:"db_name"`
+	DBPort     string `mapstructure:"db_port"`
 
 	RedisHost string `mapstructure:"redis_host"`
 }

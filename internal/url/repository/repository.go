@@ -1,14 +1,12 @@
 package repository
 
 import (
-	"github.com/gocql/gocql"
-	"time"
-	"url_shortener/infrastructure/database"
+	"database/sql"
 	"url_shortener/internal/model"
 )
 
 const (
-	QueryStore            = `INSERT INTO short_url (uid, short_url, long_url, owner_uid, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`
+	QueryStore            = `INSERT INTO short_url (uid, short_url, long_url, owner_uid) VALUES (?, ?, ?, ?)`
 	QueryFindShort        = `SELECT short_url FROM short_url WHERE long_url = ?`
 	QueryFindLong         = `SELECT long_url FROM short_url WHERE short_url = ?`
 	QueryIsUnique         = `SELECT COUNT(*) FROM short_url WHERE short_url = ?`
@@ -16,41 +14,44 @@ const (
 )
 
 type urlRepo struct {
-	db *database.DB
+	db *sql.DB
 }
 
-func NewURLRepository(db *database.DB) *urlRepo {
+func NewURLRepository(db *sql.DB) *urlRepo {
 	return &urlRepo{
 		db: db,
 	}
 }
 
+// TODO: ADD edit link functionality
 func (ur *urlRepo) Store(uid, ownerUID, short, long string) error {
-	query := ur.db.Session.Query(QueryStore, uid, short, long, ownerUID, time.Now(), time.Now())
-
-	return query.Exec()
+	_, err := ur.db.Exec(QueryStore, uid, short, long, ownerUID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (ur *urlRepo) FindShort(long string) (string, error) {
-	q := ur.db.Session.Query(QueryFindShort, long)
+	row := ur.db.QueryRow(QueryFindShort, long)
 
 	var res string
-	err := q.Consistency(gocql.One).Scan(&res)
+	err := row.Scan(&res)
 	return res, err
 
 }
 
 func (ur *urlRepo) FindLong(short string) (string, error) {
-	q := ur.db.Session.Query(QueryFindLong, short)
+	row := ur.db.QueryRow(QueryFindLong, short)
 
 	var res string
-	err := q.Consistency(gocql.One).Scan(&res)
+	err := row.Scan(&res)
 	return res, err
 }
 
 func (ur *urlRepo) IsShortURLUnique(short string) (bool, error) {
 	var count int
-	err := ur.db.Session.Query(QueryIsUnique, short).Consistency(gocql.One).Scan(&count)
+	err := ur.db.QueryRow(QueryIsUnique, short).Scan(&count)
 	if err != nil {
 		return false, err
 	}
@@ -59,17 +60,23 @@ func (ur *urlRepo) IsShortURLUnique(short string) (bool, error) {
 }
 
 func (ur *urlRepo) FindLinksPerUser(ownerID string) ([]model.URL, error) {
-	iter := ur.db.Session.Query(QueryFindLinksPerUser, ownerID).Iter()
-
+	rows, err := ur.db.Query(QueryFindLinksPerUser, ownerID)
+	if err != nil {
+		return nil, err
+	}
 	var url model.URL
 	var res []model.URL
 
-	for iter.Scan(&url.UID, &url.ShortURL, &url.LongURL, &url.OwnerID, &url.CreatedAt, &url.UpdatedAt) {
+	for rows.Next() {
+		err = rows.Scan(&url.UID, &url.ShortURL, &url.LongURL, &url.OwnerID, &url.CreatedAt, &url.UpdatedAt)
+		if err != nil {
+			return res, err
+		}
 		res = append(res, url)
 	}
 
-	if err := iter.Close(); err != nil {
-		return nil, err
+	if err := rows.Close(); err != nil {
+		return res, err
 	}
 
 	return res, nil
