@@ -18,7 +18,7 @@ type getCacher interface {
 }
 
 type storeFinder interface {
-	Store(uid, ownerUID, short, long string) error
+	Store(uid string, ownerUID string, short string, sr model.ShortenRequest) error
 	FindShort(long string) (string, error)
 	FindLong(short string) (string, error)
 	IsShortURLUnique(short string) (bool, error)
@@ -40,18 +40,18 @@ func NewURLUseCase(cfg *config.Application, r storeFinder, cache getCacher, logg
 		logger: logger,
 	}
 }
-func (uc *urlUseCase) Shorten(ownerID, long string) (string, error) {
+func (uc *urlUseCase) Shorten(ownerID string, ur model.ShortenRequest) (string, error) {
 	//check redis
-	short, err := uc.cache.GetShort(long)
+	short, err := uc.cache.GetShort(ur.LongURL)
 	if err == nil {
-		uc.logger.Debugw("found short url in cache", "short_url", short, "long_url", long)
+		uc.logger.Debugw("found short url in cache", "short_url", short, "long_url", ur.LongURL)
 		return short, nil
 	}
 
 	//check db
-	short, err = uc.repo.FindShort(long)
+	short, err = uc.repo.FindShort(ur.LongURL)
 	if err == nil {
-		uc.logger.Debugw("found short url in db", "short_url", short, "long_url", long)
+		uc.logger.Debugw("found short url in db", "short_url", short, "long_url", ur.LongURL)
 		return short, nil
 	}
 
@@ -61,18 +61,26 @@ func (uc *urlUseCase) Shorten(ownerID, long string) (string, error) {
 	}
 
 	short = uc.cfg.AppURL + id
+	//use custom domain if present
+	if ur.Domain != "" {
+		short = fmt.Sprintf("%s/%s", ur.Domain, id)
+	}
+
+	if ur.Title == "" {
+		ur.Title = short
+	}
 	uid := uuid.New()
-	err = uc.repo.Store(uid.String(), ownerID, short, long)
+	err = uc.repo.Store(uid.String(), ownerID, short, ur)
 	if err != nil {
 		return "", fmt.Errorf("storing url:%w", err)
 	}
 
-	err = uc.cache.Cache(short, long)
+	err = uc.cache.Cache(short, ur.LongURL)
 	if err != nil {
 		return "", fmt.Errorf("caching url:%w", err)
 	}
 
-	uc.logger.Infow("url shortened", "short_url", short, "long_url", long)
+	uc.logger.Infow("url shortened", "short_url", short, "long_url", ur.LongURL)
 	return short, nil
 }
 

@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	QueryStore            = `INSERT INTO short_url (uid, short_url, long_url, owner_uid) VALUES (?, ?, ?, ?)`
-	QueryFindShort        = `SELECT short_url FROM short_url WHERE long_url = ?`
-	QueryFindLong         = `SELECT long_url FROM short_url WHERE short_url = ?`
-	QueryIsUnique         = `SELECT COUNT(*) FROM short_url WHERE short_url = ?`
-	QueryFindLinksPerUser = `SELECT uid, short_url, long_url, owner_uid, created_at, updated_at FROM short_url WHERE owner_uid = ?`
+	QueryStore            = `INSERT INTO url (uid, title, domain, short_url, long_url, owner_uid) VALUES (?, ?, ?, ?, ?, ?)`
+	QueryFindShort        = `SELECT short_url FROM url WHERE long_url = ?`
+	QueryFindLong         = `SELECT long_url FROM url WHERE short_url = ?`
+	QueryIsUnique         = `SELECT COUNT(*) FROM url WHERE short_url = ?`
+	QueryFindLinksPerUser = `SELECT uid, title, domain, short_url, long_url, owner_uid, created_at, updated_at FROM url WHERE owner_uid = ?`
 )
 
 type urlRepo struct {
@@ -24,8 +24,8 @@ func NewURLRepository(db *sql.DB) *urlRepo {
 }
 
 // TODO: ADD edit link functionality
-func (ur *urlRepo) Store(uid, ownerUID, short, long string) error {
-	_, err := ur.db.Exec(QueryStore, uid, short, long, ownerUID)
+func (ur *urlRepo) Store(uid string, ownerUID string, short string, sr model.ShortenRequest) error {
+	_, err := ur.db.Exec(QueryStore, uid, sr.Title, sr.Domain, short, sr.LongURL, ownerUID)
 	if err != nil {
 		return err
 	}

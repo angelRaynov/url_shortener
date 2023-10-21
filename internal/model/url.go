@@ -4,6 +4,8 @@ import "time"
 
 type ShortenRequest struct {
 	LongURL string `json:"long_url"`
+	Title   string `json:"title"`
+	Domain  string `json:"domain"`
 }
 
 type ShortenResponse struct {
@@ -17,6 +19,8 @@ type ExpandRequest struct {
 
 type URL struct {
 	UID       string    `json:"uid"`
+	Title     string    `json:"title"`
+	Domain    string    `json:"domain"`
 	ShortURL  string    `json:"short_url"`
 	LongURL   string    `json:"long_url"`
 	OwnerID   string    `json:"owner_id"`

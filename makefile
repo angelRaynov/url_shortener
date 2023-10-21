@@ -17,20 +17,20 @@ shorten:
 	@URL=$(URL) \
 	curl -X POST http://localhost:8080/shorten \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzgwNjcyNX0.OxDCiqLbAekKxFqAy7xnYLOvheaiPQYi8F9R1wGsX8E' \
-	--data-raw '{"long_url":"$(URL)"}'
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzkwMjEzMX0.BlCavbFX0KM6RxcXS6d5rcy-WuSPbfkaav5Go6TBNPI' \
+	--data-raw '{"long_url":"$(URL)", "title":"testTitle", "domain": "https://testDomain.com"}'
 
 my:
 	@URL=$(URL) \
 	curl http://localhost:8080/my \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzgwNjcyNX0.OxDCiqLbAekKxFqAy7xnYLOvheaiPQYi8F9R1wGsX8E' \
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzkwMjEzMX0.BlCavbFX0KM6RxcXS6d5rcy-WuSPbfkaav5Go6TBNPI' \
 
 expand:
 	@URL=$(URL) \
 	curl -X POST http://localhost:8080/expand \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzgwNjcyNX0.OxDCiqLbAekKxFqAy7xnYLOvheaiPQYi8F9R1wGsX8E' \
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzkwMjEzMX0.BlCavbFX0KM6RxcXS6d5rcy-WuSPbfkaav5Go6TBNPI' \
 	--data-raw '{"short_url":"$(URL)"}'
 
 register_alice:
