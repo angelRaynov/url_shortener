@@ -68,7 +68,7 @@ func (ur *urlRepo) FindLinksPerUser(ownerID string) ([]model.URL, error) {
 	var res []model.URL
 
 	for rows.Next() {
-		err = rows.Scan(&url.UID, &url.ShortURL, &url.LongURL, &url.OwnerID, &url.CreatedAt, &url.UpdatedAt)
+		err = rows.Scan(&url.UID, &url.ShortURL, &url.Title, &url.Domain, &url.LongURL, &url.OwnerID, &url.CreatedAt, &url.UpdatedAt)
 		if err != nil {
 			return res, err
 		}
