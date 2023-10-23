@@ -53,7 +53,7 @@ func (s *server) Run() {
 	router.POST("/authenticate", s.authHandler.Authenticate)
 	router.POST("/register", s.authHandler.Register)
 	router.PATCH("/edit", AuthMiddleware(s.cfg), s.authHandler.Edit)
-	router.GET("/:short", AuthMiddleware(s.cfg), s.urlHandler.ExpandURL)
+	router.GET("/:short", AuthMiddleware(s.cfg), s.urlHandler.Redirect)
 
 	port := fmt.Sprintf(":%s", s.cfg.AppPort)
 

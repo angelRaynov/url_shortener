@@ -29,7 +29,6 @@ func NewURLHandler(cfg *config.Application, uc shortExpander, logger *zap.Sugare
 	}
 }
 
-// TODO: Add redirect functionality. i.e when someone click shortened url to redirect to the long one
 func (uh *urlHandler) ShortenURL(c *gin.Context) {
 	var urlRequest model.ShortenRequest
 	if err := c.BindJSON(&urlRequest); err != nil {
