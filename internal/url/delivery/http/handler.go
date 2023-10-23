@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
-	"strings"
 	"url_shortener/helper"
 	"url_shortener/infrastructure/config"
 	"url_shortener/internal/model"
@@ -69,25 +68,26 @@ func (uh *urlHandler) ShortenURL(c *gin.Context) {
 
 }
 
-func (uh *urlHandler) ExpandURL(c *gin.Context) {
-	var urlRequest model.ExpandRequest
-	if err := c.BindJSON(&urlRequest); err != nil {
-		uh.logger.Warnw("binding request params", "error", err)
-		c.JSON(http.StatusBadRequest, "invalid payload")
+func (uh *urlHandler) Redirect(c *gin.Context) {
+	host := c.Request.Host
+	path := c.Request.URL.Path
+
+	if host == "" || path == "" {
+		uh.logger.Warnw("empty host or path", "host", host, "path", path)
+		c.JSON(http.StatusBadRequest, "invalid request")
 		return
 	}
 
-	urlRequest.ShortURL = strings.TrimSpace(urlRequest.ShortURL)
+	short := "http://" + host + path
+	//if !helper.IsValidURL(short) {
+	//	uh.logger.Debugw("invalid url", "short_url", short)
+	//	c.JSON(http.StatusBadRequest, "invalid url")
+	//	return
+	//}
 
-	if !helper.IsValidURL(urlRequest.ShortURL) {
-		uh.logger.Debugw("invalid url", "short_url", urlRequest.ShortURL)
-		c.JSON(http.StatusBadRequest, "invalid url")
-		return
-	}
-
-	long, err := uh.urlUseCase.Expand(urlRequest.ShortURL)
+	long, err := uh.urlUseCase.Expand(short)
 	if err != nil {
-		uh.logger.Warnw("expanding url", "short_url", urlRequest.ShortURL, "error", err)
+		uh.logger.Warnw("expanding url", "short_url", short, "error", err)
 		c.IndentedJSON(http.StatusNotFound, "corresponding long url not found")
 		return
 	}

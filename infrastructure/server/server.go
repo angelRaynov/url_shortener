@@ -13,7 +13,7 @@ import (
 
 type ShortExpander interface {
 	ShortenURL(c *gin.Context)
-	ExpandURL(c *gin.Context)
+	Redirect(c *gin.Context)
 	MyLinks(c *gin.Context)
 }
 
@@ -48,12 +48,12 @@ func NewServer(cfg *config.Application, log Logger, uh ShortExpander, ah Authent
 func (s *server) Run() {
 	router := gin.Default()
 	router.POST("/shorten", AuthMiddleware(s.cfg), s.urlHandler.ShortenURL)
-	router.POST("/expand", AuthMiddleware(s.cfg), s.urlHandler.ExpandURL)
 	router.GET("/my", AuthMiddleware(s.cfg), s.urlHandler.MyLinks)
 
 	router.POST("/authenticate", s.authHandler.Authenticate)
 	router.POST("/register", s.authHandler.Register)
 	router.PATCH("/edit", AuthMiddleware(s.cfg), s.authHandler.Edit)
+	router.GET("/:short", AuthMiddleware(s.cfg), s.urlHandler.ExpandURL)
 
 	port := fmt.Sprintf(":%s", s.cfg.AppPort)
 
