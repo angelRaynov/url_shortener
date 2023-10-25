@@ -10,7 +10,6 @@ import (
 const (
 	QueryUserExist  = `SELECT count(*) FROM user WHERE email = ?`
 	QueryInsertUser = `INSERT INTO user (uid, username, salt, password, email) VALUES (?, ?, ?, ?, ?)`
-	QueryPatchUser  = `UPDATE user SET username = ?, salt = ?, password = ?, email = ? WHERE uid = ?;`
 	QueryGetUser    = `SELECT uid, username, password, salt, email FROM user WHERE username = ?`
 )
 

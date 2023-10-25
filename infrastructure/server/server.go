@@ -11,36 +11,36 @@ import (
 	"url_shortener/infrastructure/config"
 )
 
-type ShortExpander interface {
+type urlHandler interface {
 	ShortenURL(c *gin.Context)
 	Redirect(c *gin.Context)
 	MyLinks(c *gin.Context)
 }
 
-type Authenticator interface {
+type userHandler interface {
 	Authenticate(c *gin.Context)
 	Register(c *gin.Context)
 	Edit(c *gin.Context)
 }
 
-type Logger interface {
+type logger interface {
 	Fatalf(string, ...interface{})
 	Infof(string, ...interface{})
 	Info(args ...interface{})
 }
 
 type server struct {
-	log         Logger
-	urlHandler  ShortExpander
-	authHandler Authenticator
+	log         logger
+	urlHandler  urlHandler
+	userHandler userHandler
 	cfg         *config.Application
 }
 
-func NewServer(cfg *config.Application, log Logger, uh ShortExpander, ah Authenticator) *server {
+func NewServer(cfg *config.Application, log logger, uh urlHandler, ush userHandler) *server {
 	return &server{
 		log:         log,
 		urlHandler:  uh,
-		authHandler: ah,
+		userHandler: ush,
 		cfg:         cfg,
 	}
 }
@@ -50,9 +50,9 @@ func (s *server) Run() {
 	router.POST("/shorten", AuthMiddleware(s.cfg), s.urlHandler.ShortenURL)
 	router.GET("/my", AuthMiddleware(s.cfg), s.urlHandler.MyLinks)
 
-	router.POST("/authenticate", s.authHandler.Authenticate)
-	router.POST("/register", s.authHandler.Register)
-	router.PATCH("/edit", AuthMiddleware(s.cfg), s.authHandler.Edit)
+	router.POST("/authenticate", s.userHandler.Authenticate)
+	router.POST("/register", s.userHandler.Register)
+	router.PATCH("/edit", AuthMiddleware(s.cfg), s.userHandler.Edit)
 	router.GET("/:short", AuthMiddleware(s.cfg), s.urlHandler.Redirect)
 
 	port := fmt.Sprintf(":%s", s.cfg.AppPort)
@@ -63,10 +63,10 @@ func (s *server) Run() {
 	}
 
 	go func() {
+		s.log.Infof("listening on port :%s", s.cfg.AppPort)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			s.log.Fatalf("Server failed to start: %v", err)
 		}
-		s.log.Infof("listening on port :%s", s.cfg.AppPort)
 	}()
 
 	quit := make(chan os.Signal, 1)

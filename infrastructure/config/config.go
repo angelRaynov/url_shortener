@@ -14,9 +14,6 @@ type Application struct {
 	JWTSecret     string `mapstructure:"jwt_secret"`
 	JWTExpiration int    `mapstructure:"jwt_expiration_hour"`
 
-	CassHost     string `mapstructure:"cass_host"`
-	CassKeyspace string `mapstructure:"cass_keyspace"`
-
 	DBHost     string `mapstructure:"db_host"`
 	DBUser     string `mapstructure:"db_user"`
 	DBPassword string `mapstructure:"db_password"`

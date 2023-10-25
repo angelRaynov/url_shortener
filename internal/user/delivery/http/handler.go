@@ -10,62 +10,69 @@ import (
 	"url_shortener/internal/model"
 )
 
-type ILogger interface {
+type logger interface {
 	Debugw(msg string, keysAndValues ...interface{})
 }
 type jwtGenerator interface {
 	GenerateJWT(creds model.AuthRequest) (string, error)
+}
+
+type regEditor interface {
 	RegisterUser(u *model.User) error
 	EditUser(u *model.User, uid string) error
 }
-
-type authHandler struct {
-	l           ILogger
-	authUseCase jwtGenerator
+type userUseCase interface {
+	jwtGenerator
+	regEditor
 }
 
-func NewAuthHandler(l ILogger, authUsecase jwtGenerator) *authHandler {
-	return &authHandler{
+type userHandler struct {
+	l           logger
+	userUseCase userUseCase
+}
+
+func NewAuthHandler(l logger, userUseCase userUseCase) *userHandler {
+	return &userHandler{
 		l:           l,
-		authUseCase: authUsecase,
+		userUseCase: userUseCase,
 	}
 }
 
-func (ah *authHandler) Authenticate(c *gin.Context) {
+func (uh *userHandler) Authenticate(c *gin.Context) {
 	var creds model.AuthRequest
 	if err := c.ShouldBindJSON(&creds); err != nil {
-		ah.l.Debugw("binding user request:", "error", err)
+		uh.l.Debugw("binding user request:", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
 
-	tokenString, err := ah.authUseCase.GenerateJWT(creds)
+	tokenString, err := uh.userUseCase.GenerateJWT(creds)
 	if err != nil {
 		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
-			ah.l.Debugw("wrong credentials", "error", err, "username", creds.Username)
+			uh.l.Debugw("wrong credentials", "error", err, "username", creds.Username)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
 		}
 
 		if errors.Is(err, sql.ErrNoRows) {
-			ah.l.Debugw("wrong credentials", "error", err, "username", creds.Username)
+			uh.l.Debugw("wrong credentials", "error", err, "username", creds.Username)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
 		}
 
-		ah.l.Debugw("generating jwt", "error", err, "username", creds.Username)
+		uh.l.Debugw("generating jwt", "error", err, "username", creds.Username)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 	// Return the token in the response
-	ah.l.Debugw("generated jwt", "username", creds.Username)
+	uh.l.Debugw("generated jwt", "username", creds.Username)
 	c.JSON(http.StatusOK, model.AuthResponse{Token: tokenString})
 }
 
-func (ah *authHandler) Register(c *gin.Context) {
+func (uh *userHandler) Register(c *gin.Context) {
 	var rr model.UserRequest
 	if err := c.ShouldBindJSON(&rr); err != nil {
-		ah.l.Debugw("binding user request:", "error", err)
+		uh.l.Debugw("binding user request:", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
@@ -74,28 +81,28 @@ func (ah *authHandler) Register(c *gin.Context) {
 
 	err := v.Struct(rr)
 	if err != nil {
-		ah.l.Debugw("validating user request:", "error", err)
+		uh.l.Debugw("validating user request:", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
 
 	um := mapUserToModel(rr)
 
-	err = ah.authUseCase.RegisterUser(um)
+	err = uh.userUseCase.RegisterUser(um)
 	if err != nil {
-		ah.l.Debugw("registering user:", "username", rr.Username, "error", err)
+		uh.l.Debugw("registering user:", "username", rr.Username, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "registration failed"})
 		return
 	}
 
-	ah.l.Debugw("user registered successfully", "username", rr.Username)
+	uh.l.Debugw("user registered successfully", "username", rr.Username)
 	c.JSON(http.StatusCreated, nil)
 }
 
-func (ah *authHandler) Edit(c *gin.Context) {
+func (uh *userHandler) Edit(c *gin.Context) {
 	var er model.EditUserRequest
 	if err := c.ShouldBindJSON(&er); err != nil {
-		ah.l.Debugw("binding user request:", "error", err)
+		uh.l.Debugw("binding user request:", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
@@ -104,13 +111,13 @@ func (ah *authHandler) Edit(c *gin.Context) {
 
 	err := v.Struct(er)
 	if err != nil {
-		ah.l.Debugw("validating edit request:", "error", err)
+		uh.l.Debugw("validating edit request:", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if isEditRequestEmpty(er) {
-		ah.l.Debugw("updating user: empty edit request")
+		uh.l.Debugw("updating user: empty edit request")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
@@ -119,25 +126,25 @@ func (ah *authHandler) Edit(c *gin.Context) {
 
 	uid, ok := c.Get("user_uid")
 	if !ok {
-		ah.l.Debugw("updating user: missing uid")
+		uh.l.Debugw("updating user: missing uid")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
 	userID, isString := uid.(string)
 	if !isString {
-		ah.l.Debugw("updating user: uid not a string")
+		uh.l.Debugw("updating user: uid not a string")
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request"})
 		return
 	}
 
-	err = ah.authUseCase.EditUser(user, userID)
+	err = uh.userUseCase.EditUser(user, userID)
 	if err != nil {
-		ah.l.Debugw("updating user:", "username", er.Username, "error", err)
+		uh.l.Debugw("updating user:", "username", er.Username, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "update user failed"})
 		return
 	}
 
-	ah.l.Debugw("user updated successfully", "username", er.Username)
+	uh.l.Debugw("user updated successfully", "username", er.Username)
 	c.JSON(http.StatusCreated, nil)
 }
 

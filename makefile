@@ -17,21 +17,21 @@ shorten:
 	@URL=$(URL) \
 	curl -X POST http://localhost:8080/shorten \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzkwMjEzMX0.BlCavbFX0KM6RxcXS6d5rcy-WuSPbfkaav5Go6TBNPI' \
-	--data-raw '{"long_url":"$(URL)", "title":"testTitle", "domain": "https://testDomain.com"}'
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5ODIyOTY1Nn0.HcyTaoSYhAYiqnbPH7VozSOMr5QlmS_a52IjOToRBcc' \
+	--data-raw '{"long_url":"$(URL)", "title":"testTitle"}'
 
 my:
 	@URL=$(URL) \
 	curl http://localhost:8080/my \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzkwMjEzMX0.BlCavbFX0KM6RxcXS6d5rcy-WuSPbfkaav5Go6TBNPI' \
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5ODIyOTY1Nn0.HcyTaoSYhAYiqnbPH7VozSOMr5QlmS_a52IjOToRBcc' \
 
-expand:
+redirect:
 	@URL=$(URL) \
-	curl -X POST http://localhost:8080/expand \
+	curl -X GET $(URL) \
 	-H 'Content-Type: text/plain;charset=UTF-8' \
-	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5NzkwMjEzMX0.BlCavbFX0KM6RxcXS6d5rcy-WuSPbfkaav5Go6TBNPI' \
-	--data-raw '{"short_url":"$(URL)"}'
+	-H 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImJvYiIsImVtYWlsIjoidGVzdGJvYkBtYW5zaW9uLmNvbSIsInVpZCI6IjJiYTNhZjVmLTNhMWItNGUyYi1hZjczLWJiNzkzM2NjM2Y3YSIsImV4cCI6MTY5ODIyOTY1Nn0.HcyTaoSYhAYiqnbPH7VozSOMr5QlmS_a52IjOToRBcc' \
+#	--data-raw '{"short_url":"$(URL)"}'
 
 register_alice:
 	curl -X POST localhost:8080/register -d '{"username":"alice", "password":"alice134312", "email":"test@mansion.com"}'

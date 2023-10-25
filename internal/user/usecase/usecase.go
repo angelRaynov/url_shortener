@@ -10,32 +10,32 @@ import (
 	"url_shortener/internal/model"
 )
 
-type Logger interface {
+type logger interface {
 	Debugw(msg string, keysAndValues ...interface{})
 }
-type authRepo interface {
+type userRepo interface {
 	GetUserByUsername(username string) (*model.User, error)
 	StoreUser(registerRequest *model.User, salt, hashedPass string) error
 	UserExist(email string) bool
 	EditUser(u *model.User, salt, uid string) error
 }
 
-type authUseCase struct {
-	l   Logger
-	ar  authRepo
+type userUseCase struct {
+	l   logger
+	ur  userRepo
 	cfg *config.Application
 }
 
-func NewAuthUseCase(cfg *config.Application, l Logger, ar authRepo) *authUseCase {
-	return &authUseCase{
+func NewUserUseCase(cfg *config.Application, l logger, ur userRepo) *userUseCase {
+	return &userUseCase{
 		l:   l,
-		ar:  ar,
+		ur:  ur,
 		cfg: cfg,
 	}
 }
 
-func (au *authUseCase) GenerateJWT(creds model.AuthRequest) (string, error) {
-	user, err := au.ar.GetUserByUsername(creds.Username)
+func (au *userUseCase) GenerateJWT(creds model.AuthRequest) (string, error) {
+	user, err := au.ur.GetUserByUsername(creds.Username)
 	if err != nil {
 		au.l.Debugw("getting user password", "error", err, "username", creds.Username)
 		return "", fmt.Errorf("getting user password:%w", err)
@@ -75,14 +75,14 @@ func (au *authUseCase) GenerateJWT(creds model.AuthRequest) (string, error) {
 	return tokenString, nil
 }
 
-func (au *authUseCase) RegisterUser(u *model.User) error {
+func (au *userUseCase) RegisterUser(u *model.User) error {
 	salt, err := helper.GenerateSalt()
 	if err != nil {
 		au.l.Debugw("generating salt", "error", err)
 		return fmt.Errorf("generating salt:%w", err)
 	}
 
-	if au.ar.UserExist(u.Email) {
+	if au.ur.UserExist(u.Email) {
 		au.l.Debugw("user already exist", "email", u.Email)
 		return fmt.Errorf("user with email %s already exist", u.Email)
 	}
@@ -96,7 +96,7 @@ func (au *authUseCase) RegisterUser(u *model.User) error {
 		return fmt.Errorf("hashing password:%w", err)
 	}
 
-	err = au.ar.StoreUser(u, salt, string(hashedPassword))
+	err = au.ur.StoreUser(u, salt, string(hashedPassword))
 	if err != nil {
 		au.l.Debugw("storing user", "error", err)
 		return fmt.Errorf("storing user:%w", err)
@@ -104,7 +104,7 @@ func (au *authUseCase) RegisterUser(u *model.User) error {
 	return nil
 }
 
-func (au *authUseCase) EditUser(u *model.User, uid string) error {
+func (au *userUseCase) EditUser(u *model.User, uid string) error {
 	salt, err := helper.GenerateSalt()
 	if err != nil {
 		au.l.Debugw("generating salt", "error", err)
@@ -123,7 +123,7 @@ func (au *authUseCase) EditUser(u *model.User, uid string) error {
 		u.Password = string(hashedPassword)
 	}
 
-	err = au.ar.EditUser(u, salt, uid)
+	err = au.ur.EditUser(u, salt, uid)
 	if err != nil {
 		au.l.Debugw("storing user", "error", err)
 		return fmt.Errorf("storing user:%w", err)

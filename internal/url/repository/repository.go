@@ -23,7 +23,6 @@ func NewURLRepository(db *sql.DB) *urlRepo {
 	}
 }
 
-// TODO: ADD edit link functionality
 func (ur *urlRepo) Store(uid string, ownerUID string, short string, sr model.ShortenRequest) error {
 	_, err := ur.db.Exec(QueryStore, uid, sr.Title, sr.Domain, short, sr.LongURL, ownerUID)
 	if err != nil {
@@ -75,7 +74,7 @@ func (ur *urlRepo) FindLinksPerUser(ownerID string) ([]model.URL, error) {
 		res = append(res, url)
 	}
 
-	if err := rows.Close(); err != nil {
+	if err = rows.Close(); err != nil {
 		return res, err
 	}
 
